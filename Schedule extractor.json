@@ -1,0 +1,382 @@
+{
+  "name": "Schedule extractor",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "=attachment_{{$runIndex}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        512,
+        160
+      ],
+      "id": "9270d1ac-6e43-422e-a37c-9674f4929a06",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "messageId": "={{ $('Get mail').item.json.id }}",
+        "simple": false,
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        304,
+        160
+      ],
+      "id": "f1a8fc07-7892-44fd-bb81-f9309e07624c",
+      "name": "Get a message",
+      "webhookId": "592e8b59-6e0f-499e-8492-d2e6b04ba271",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "G1dPuptSWefWEFEF",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a specialized data extraction assistant that converts examination timetable PDFs into structured JSON format.\n\nTASK:\n\nExtract all relevant exam information from the PDF.\n\nEach exam entry must include the following fields:\n\nClassID (string)\n\nSession (string)\n\nTime (string, in format HH:MM AM/PM)\n\nDate (string, in format DD/MM/YY)\n\nRULES:\n\nReturn ONLY a JSON array of objects.\n\nDo NOT include:\n\nCode block markers (json or )\n\nThe word \"json\"\n\nAny explanatory text\n\nEscape characters or newlines\n\nOUTPUT FORMAT:\n\nThe JSON array must start with [ and end with ].\n\nExample:\n[{\"ClassID\":\"BL2025260100035\",\"Session\":\"1\",\"Time\":\"9:15 AM\",\"Date\":\"01/10/25\"},{\"ClassID\":\"BL2025260100048\",\"Session\":\"1\",\"Time\":\"9:15 AM\",\"Date\":\"01/10/25\"}]\n\nIMPORTANT:\n\nEnsure all entries are properly formatted JSON objects.\n\nNo extra characters, spaces, or text outside the JSON array.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        160
+      ],
+      "id": "0a8d5aaa-3518-419f-bc65-c69125112d8f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        368
+      ],
+      "id": "a2f00d8f-2c7b-4253-af8f-67d12b124525",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GrdJID8GiIdSLH76",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1P9y4mpwZynUX4z-a-h3z-poY7QDdd5MnCb9IYyVTkZo",
+          "mode": "list",
+          "cachedResultName": "Schedule",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P9y4mpwZynUX4z-a-h3z-poY7QDdd5MnCb9IYyVTkZo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P9y4mpwZynUX4z-a-h3z-poY7QDdd5MnCb9IYyVTkZo/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "ClassID": "={{ $json.ClassID }}",
+            "Session": "={{ $json.Session }}",
+            "Time": "={{ $json.Time }}",
+            "Date": "={{ $json.Date }}"
+          },
+          "matchingColumns": [
+            "ClassID"
+          ],
+          "schema": [
+            {
+              "id": "ClassID",
+              "displayName": "ClassID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Session",
+              "displayName": "Session",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1312,
+        160
+      ],
+      "id": "2265bf43-2a4c-4f2a-8475-7362cc045cca",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TKnKTy6aY9J4UeGc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get your data array (replace 'data' if your field name differs)\nlet raw = $input.first().json.output;\n\n// Parse if it’s a string\nlet rows = typeof raw === 'string' ? JSON.parse(raw) : raw;\n\n// Convert each subarray into a new item for n8n\nreturn rows.map(r => ({\n  json: {\n    ClassID: r.ClassID,\n    Session: r.Session,\n    Time: r.Time,\n    Date: r.Date\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1056,
+        192
+      ],
+      "id": "340ffe76-596a-4aef-8f0a-c0e2df27a85b",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        272,
+        416
+      ],
+      "id": "efdc5853-9d52-4114-a516-7e0455989df6",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "id": "42f5fb11-6fa8-419a-ad50-e7c6ec7e9836",
+      "name": "Get mail",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        160
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "G1dPuptSWefWEFEF",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "=Schedule",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "e75d9a9e-f3b8-4a2b-9e9b-284ae58208aa",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "schedule",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "c3cdbd96-71bf-4f38-bc8d-84c2087e25e2",
+      "name": "Check if mail contains 'Schedule' and is from COE",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        16,
+        160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a message": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get mail": {
+      "main": [
+        [
+          {
+            "node": "Check if mail contains 'Schedule' and is from COE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if mail contains 'Schedule' and is from COE": {
+      "main": [
+        [
+          {
+            "node": "Get a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "2SrjCCtqbUiTbIVI",
+    "timezone": "Asia/Kolkata",
+    "saveExecutionProgress": true,
+    "timeSavedPerExecution": 1
+  },
+  "versionId": "2059e492-5735-4a55-9204-034a8c1ddba1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "015ab34bc668306352b2a6711f7b839a201ac7346c724d6c38b57713e8c0ba6d"
+  },
+  "id": "2SrjCCtqbUiTbIVI",
+  "tags": []
+}
