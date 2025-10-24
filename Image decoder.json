@@ -1,0 +1,424 @@
+{
+  "name": "Image decoder",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["messages"],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [-256, -144],
+      "id": "5f546e57-7353-462a-9b96-853449d9fb3f",
+      "name": "WhatsApp Trigger",
+      "webhookId": "2e4f17d9-52a4-4ab7-92ee-638924d92457",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "SS6qEtFpqsxpFXf6",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=You are analyzing an image of a course registration table. Your response must be ONLY valid JSON with no additional text, formatting, or code blocks. Extract: { \"class_ids\": example[\"BL2025260100466\"], \"subject_names\": example[\"Software Engineering\"], \"teacher_names\": example[\"Dr. S. Kumar\"] }. Do not include json, backticks, or any other text. Return raw JSON only.",
+        "inputType": "binary",
+        "simplify": false,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [800, -96],
+      "id": "03e761a8-bb9e-45fe-af73-2d4fbe5aaede",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GrdJID8GiIdSLH76",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "42e9c581-e9d7-4ba8-989c-463c034c67ba"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4f3eab44-76b1-49c7-bec0-b76edfdc640e",
+                    "leftValue": "={{ $json.messages[0].type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [-16, -128],
+      "id": "6da27d43-1413-42a0-87c9-4c711cdbe86c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.messages[0].image.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [224, -96],
+      "id": "74b92c1d-fd33-4884-bcca-d83b9243df8f",
+      "name": "Get link",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "44sPcDkLmasTRHbT",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "=GET",
+        "url": "={{ $json.body.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [512, -96],
+      "id": "7e9eb44c-d709-45e9-a386-ff601b0ed86a",
+      "name": "Download image",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "44sPcDkLmasTRHbT",
+          "name": "Bearer Auth account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1P9y4mpwZynUX4z-a-h3z-poY7QDdd5MnCb9IYyVTkZo",
+          "mode": "list",
+          "cachedResultName": "Schedule",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P9y4mpwZynUX4z-a-h3z-poY7QDdd5MnCb9IYyVTkZo/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1P9y4mpwZynUX4z-a-h3z-poY7QDdd5MnCb9IYyVTkZo/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "ClassID",
+              "lookupValue": "={{ $json.class_ids }}"
+            }
+          ]
+        },
+        "options": {
+          "outputFormatting": {
+            "values": {
+              "general": "FORMATTED_VALUE",
+              "date": "FORMATTED_STRING"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [1664, -64],
+      "id": "87e4ae03-bb66-4610-b01a-fb71cbd4cbf6",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TKnKTy6aY9J4UeGc",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const textContent =$input.first().json.candidates[0].content.parts[0].text ;\nconst parsedJson = JSON.parse(textContent); // <--- this line likely fails if textContent is not valid JSON\nreturn {\n  json: parsedJson\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1056, -96],
+      "id": "b40d0e74-0ccd-49a6-858b-5102eb448adf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "class_ids,subject_names,teacher_names",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [1408, 0],
+      "id": "3d6d53be-fbf1-47dd-b887-d51c6ee3bd1a",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=\nHere is the data:\nSubject: {{ $('Split Out').item.json.subject_names }}\nDate: {{ $json.Date }}\nSession: {{ $json.Session }}\nTime: {{$json[\"Time\"]}}\nTeacher : {{ $('Split Out').item.json.teacher_names }}\n",
+        "options": {
+          "systemMessage": "You are a formatting assistant. Always return the output in the exact structure below without adding any explanations or extra text.\n\nFormat:\nYour Timetable is :-\n{subject_name}(Teacher) :- {date}(session-{session}-{time})\n\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [1888, -128],
+      "id": "e0a69e33-23d2-485d-99b5-158f1e55de18",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [1984, 272],
+      "id": "f74c41f4-54db-4fd6-a2a9-6780df120058",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GrdJID8GiIdSLH76",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get all items coming in\nconst items = $input.all();\n\n// Start building the output message\nlet result = \"Your Timetable is:-\\n\";\n\n// Loop through each item and append its text with numbering\nitems.forEach((item, index) => {\n  result += `${index + 1}) ${item.json.output.replace(\"Your Timetable is :-\", \"\").trim()}\\n`;\n});\n\n// Return the final single combined text\nreturn [{ json: { combinedOutput: result } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2288, -160],
+      "id": "bacafe0c-122f-4b60-8557-4f3b90bfa51e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "={{ $node['WhatsApp Trigger'].json.metadata.phone_number_id }}",
+        "recipientPhoneNumber": "={{$node[\"WhatsApp Trigger\"].json.messages[0].from}}\n",
+        "textBody": "={{ $json.combinedOutput }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [2592, -336],
+      "id": "dc775451-acad-4b26-a64c-9e12d0246371",
+      "name": "Send message",
+      "webhookId": "b5609cde-2650-490c-a7e8-a0407a0dc335",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "oT8TrtUCX0hka2XQ",
+          "name": "WhatsApp account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Get link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get link": {
+      "main": [
+        [
+          {
+            "node": "Download image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download image": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "528c2268-2ff3-4125-ac0a-a9ee721878a6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "015ab34bc668306352b2a6711f7b839a201ac7346c724d6c38b57713e8c0ba6d"
+  },
+  "id": "I50adiwMFfmNTzZq",
+  "tags": []
+}
